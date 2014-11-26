@@ -26,6 +26,7 @@ import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.command.ConsumerId;
 import org.apache.activemq.command.MessageDispatch;
 import org.apache.activemq.selector.SelectorParser;
+import org.apache.activemq.util.DebugLogger;
 
 /**
  * A client uses a <CODE>QueueBrowser</CODE> object to look at messages on a
@@ -53,6 +54,7 @@ import org.apache.activemq.selector.SelectorParser;
  */
 
 public class ActiveMQQueueBrowser implements QueueBrowser, Enumeration {
+	private static final DebugLogger logger = DebugLogger.getLogger("hqbroker.log");
 
     private final ActiveMQSession session;
     private final ActiveMQDestination destination;
@@ -97,6 +99,7 @@ public class ActiveMQQueueBrowser implements QueueBrowser, Enumeration {
         return new ActiveMQMessageConsumer(session, consumerId, destination, null, selector, prefetchPolicy.getQueueBrowserPrefetch(), prefetchPolicy
             .getMaximumPendingMessageLimit(), false, true, dispatchAsync, null) {
             public void dispatch(MessageDispatch md) {
+            	logger.log("browser received a md: " + md);
                 if (md.getMessage() == null) {
                     browseDone.set(true);
                 } else {

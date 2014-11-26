@@ -284,7 +284,7 @@ public class JmsQueueBrowserTest extends JmsTestSupport {
 
         MessageProducer producer = session.createProducer(destination);
         producer.send(outbound[0]);
-
+        
         // create browser first
         QueueBrowser browser = session.createBrowser(destination);
         Enumeration<?> enumeration = browser.getEnumeration();

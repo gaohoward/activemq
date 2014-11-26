@@ -83,6 +83,7 @@ import org.apache.activemq.command.Response;
 import org.apache.activemq.command.SessionId;
 import org.apache.activemq.command.SessionInfo;
 import org.apache.activemq.command.TransactionId;
+import org.apache.activemq.hornetq.HornetQBrokerHelper;
 import org.apache.activemq.management.JMSSessionStatsImpl;
 import org.apache.activemq.management.StatsCapable;
 import org.apache.activemq.management.StatsImpl;
@@ -1045,6 +1046,7 @@ public class ActiveMQSession implements Session, QueueSession, TopicSession, Sta
             return customDestination.createProducer(this);
         }
         int timeSendOut = connection.getSendTimeout();
+        this.preCreateDestination(ActiveMQMessageTransformation.transformDestination(destination));
         return new ActiveMQMessageProducer(this, getNextProducerId(), ActiveMQMessageTransformation.transformDestination(destination),timeSendOut);
     }
 
@@ -1236,11 +1238,21 @@ public class ActiveMQSession implements Session, QueueSession, TopicSession, Sta
             prefetch = prefetchPolicy.getQueuePrefetch();
         }
         ActiveMQDestination activemqDestination = ActiveMQMessageTransformation.transformDestination(destination);
+        //pre-create
+        preCreateDestination(activemqDestination);
         return new ActiveMQMessageConsumer(this, getNextConsumerId(), activemqDestination, null, messageSelector,
                 prefetch, prefetchPolicy.getMaximumPendingMessageLimit(), noLocal, false, isAsyncDispatch(), messageListener);
     }
 
-    /**
+    private void preCreateDestination(ActiveMQDestination activemqDestination) {
+        try {
+			HornetQBrokerHelper.makeSureDestinationExists(activemqDestination);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to create queue" + activemqDestination, e);
+		}
+	}
+
+	/**
      * Creates a queue identity given a <CODE>Queue</CODE> name.
      * <P>
      * This facility is provided for the rare cases where clients need to
@@ -1521,6 +1533,7 @@ public class ActiveMQSession implements Session, QueueSession, TopicSession, Sta
         }
 
         ActiveMQPrefetchPolicy prefetchPolicy = this.connection.getPrefetchPolicy();
+        this.preCreateDestination(ActiveMQMessageTransformation.transformDestination(queue));
         return new ActiveMQQueueReceiver(this, getNextConsumerId(), ActiveMQMessageTransformation.transformDestination(queue), messageSelector, prefetchPolicy.getQueuePrefetch(),
                                          prefetchPolicy.getMaximumPendingMessageLimit(), asyncDispatch);
     }
@@ -1544,6 +1557,7 @@ public class ActiveMQSession implements Session, QueueSession, TopicSession, Sta
             return customDestination.createSender(this);
         }
         int timeSendOut = connection.getSendTimeout();
+        this.preCreateDestination(ActiveMQMessageTransformation.transformDestination(queue));
         return new ActiveMQQueueSender(this, ActiveMQMessageTransformation.transformDestination(queue),timeSendOut);
     }
 

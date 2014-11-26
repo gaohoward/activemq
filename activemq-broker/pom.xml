@@ -36,6 +36,20 @@
 
   <dependencies>
     <!-- =============================== -->
+    <!-- Temp Dependencies for hq openwire tests -->
+    <!-- =============================== -->
+    <dependency>
+      <groupId>org.jboss</groupId>
+      <artifactId>jboss-common-core</artifactId>
+      <version>2.2.17.GA</version>
+      <exclusions>
+        <exclusion>  <!-- declare the exclusion here -->
+          <groupId>org.jboss.logging</groupId>
+          <artifactId>jboss-logging-spi</artifactId>
+        </exclusion>
+      </exclusions> 
+    </dependency>
+    <!-- =============================== -->
     <!-- Required Dependencies -->
     <!-- =============================== -->
     <dependency>
@@ -76,13 +90,23 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-server</artifactId>
+      <version>6.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-openwire-protocol</artifactId>
+      <version>6.0.0-SNAPSHOT</version>
+    </dependency>
+
   </dependencies>
 
   <reporting>

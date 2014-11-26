@@ -16,6 +16,7 @@
  */
 package org.apache.activemq.transport;
 
+import org.apache.activemq.util.DebugLogger;
 import org.apache.activemq.util.FactoryFinder;
 import org.apache.activemq.util.IOExceptionSupport;
 import org.apache.activemq.util.IntrospectionSupport;
@@ -34,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 public abstract class TransportFactory {
+	
+	private static final DebugLogger logger = DebugLogger.getLogger("hqbroker.log");
 
     private static final FactoryFinder TRANSPORT_FACTORY_FINDER = new FactoryFinder("META-INF/services/org/apache/activemq/transport/");
     private static final FactoryFinder WIREFORMAT_FACTORY_FINDER = new FactoryFinder("META-INF/services/org/apache/activemq/wireformat/");
@@ -61,6 +64,7 @@ public abstract class TransportFactory {
      */
     public static Transport connect(URI location) throws Exception {
         TransportFactory tf = findTransportFactory(location);
+        logger.log("hello we found tf: " + tf);
         return tf.doConnect(location);
     }
 

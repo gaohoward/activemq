@@ -122,6 +122,7 @@ public class ActiveMQSslConnectionFactoryTest extends CombinationTestSupport {
     }
 
     public void testFailoverSslConnectionWithKeyAndTrustManagers() throws Exception {
+    	LOG.info("================= starting test");
         String sslUri = "ssl://localhost:61611";
         broker = createSslBroker(sslUri);
         assertNotNull(broker);
@@ -201,9 +202,7 @@ public class ActiveMQSslConnectionFactoryTest extends CombinationTestSupport {
         SslBrokerService service = new SslBrokerService();
         service.setPersistent(false);
 
-        KeyManager[] km = getKeyManager();
-        TrustManager[] tm = getTrustManager();
-        service.addSslConnector(uri, km, tm, null);
+        service.setupSsl(KEYSTORE_TYPE, PASSWORD, SERVER_KEYSTORE);
         service.start();
 
         return service;
