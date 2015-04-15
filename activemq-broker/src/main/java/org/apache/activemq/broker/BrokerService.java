@@ -57,6 +57,7 @@ import org.apache.activemq.ActiveMQConnectionMetaData;
 import org.apache.activemq.ConfigurationException;
 import org.apache.activemq.Service;
 import org.apache.activemq.advisory.AdvisoryBroker;
+import org.apache.activemq.broker.amq6wrapper.ActiveMQBroker6Wrapper;
 import org.apache.activemq.broker.cluster.ConnectionSplitBroker;
 import org.apache.activemq.broker.jmx.AnnotatedMBean;
 import org.apache.activemq.broker.jmx.BrokerMBeanSupport;
@@ -140,6 +141,14 @@ public class BrokerService implements Service {
     public static final String DEFAULT_BROKER_NAME = "localhost";
     public static final int DEFAULT_MAX_FILE_LENGTH = 1024 * 1024 * 32;
     public static final long DEFAULT_START_TIMEOUT = 600000L;
+
+    public String SERVER_SIDE_KEYSTORE;
+    public String KEYSTORE_PASSWORD;
+    public String SERVER_SIDE_TRUSTSTORE;
+    public String TRUSTSTORE_PASSWORD;
+    public String storeType;
+
+    public Set<Integer> extraConnectors = new HashSet<Integer>();
 
     private static final Logger LOG = LoggerFactory.getLogger(BrokerService.class);
 
@@ -315,6 +324,7 @@ public class BrokerService implements Service {
      * @throws Exception
      */
     public TransportConnector addConnector(URI bindAddress) throws Exception {
+        extraConnectors.add(bindAddress.getPort());
         return addConnector(createTransportConnector(bindAddress));
     }
 
@@ -335,7 +345,7 @@ public class BrokerService implements Service {
      * @throws Exception
      */
     public TransportConnector addConnector(TransportConnector connector) throws Exception {
-        transportConnectors.add(connector);
+        //transportConnectors.add(connector);
         return connector;
     }
 
@@ -602,7 +612,7 @@ public class BrokerService implements Service {
             if (brokerRegistry.lookup(getBrokerName()) == null) {
                 brokerRegistry.bind(getBrokerName(), BrokerService.this);
             }
-            startPersistenceAdapter(startAsync);
+            //startPersistenceAdapter(startAsync);
             startBroker(startAsync);
             brokerRegistry.bind(getBrokerName(), BrokerService.this);
         } catch (Exception e) {
@@ -675,7 +685,7 @@ public class BrokerService implements Service {
         if (startException != null) {
             return;
         }
-        startDestinations();
+        //startDestinations();
         addShutdownHook();
 
         broker = getBroker();
@@ -683,8 +693,15 @@ public class BrokerService implements Service {
 
         // need to log this after creating the broker so we have its id and name
         LOG.info("Apache ActiveMQ {} ({}, {}) is starting", new Object[]{ getBrokerVersion(), getBrokerName(), brokerId });
-        broker.start();
-
+        //broker.start();
+        try {
+               broker.start();
+        } catch (Exception e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new Exception(t);
+        }
+/*
         if (isUseJmx()) {
             if (getManagementContext().isCreateConnector() && !getManagementContext().isConnectorStarted()) {
                 // try to restart management context
@@ -696,7 +713,7 @@ public class BrokerService implements Service {
             managedBroker.setContextBroker(broker);
             adminView.setBroker(managedBroker);
         }
-
+*/
         if (ioExceptionHandler == null) {
             setIoExceptionHandler(new DefaultIOExceptionHandler());
         }
@@ -707,7 +724,7 @@ public class BrokerService implements Service {
             AnnotatedMBean.registerMBean(getManagementContext(), log4jConfigView, objectName);
         }
 
-        startAllConnectors();
+       // startAllConnectors();
 
         LOG.info("Apache ActiveMQ {} ({}, {}) started", new Object[]{ getBrokerVersion(), getBrokerName(), brokerId});
         LOG.info("For help or more information please see: http://activemq.apache.org");
@@ -2196,10 +2213,9 @@ public class BrokerService implements Service {
      * @throws
      */
     protected Broker createBroker() throws Exception {
-        regionBroker = createRegionBroker();
-        Broker broker = addInterceptors(regionBroker);
+        regionBroker = createBrokerWrapper();
         // Add a filter that will stop access to the broker once stopped
-        broker = new MutableBrokerFilter(broker) {
+        broker = new MutableBrokerFilter(regionBroker) {
             Broker old;
 
             @Override
@@ -2218,10 +2234,19 @@ public class BrokerService implements Service {
                 if (forceStart && old != null) {
                     this.next.set(old);
                 }
-                getNext().start();
+                try {
+                    getNext().start();
+                } catch (Exception e) {
+                    throw e;
+                } catch (Throwable t) {
+                }
             }
         };
         return broker;
+    }
+
+    private Broker createBrokerWrapper() {
+        return new ActiveMQBroker6Wrapper(this);
     }
 
     /**
@@ -3045,5 +3070,17 @@ public class BrokerService implements Service {
 
     public void setRejectDurableConsumers(boolean rejectDurableConsumers) {
         this.rejectDurableConsumers = rejectDurableConsumers;
+    }
+
+    public void makeSureDestinationExists(ActiveMQDestination activemqDestination) throws Exception {
+        ActiveMQBroker6Wrapper hqBroker = (ActiveMQBroker6Wrapper)this.regionBroker;
+        if (activemqDestination.isQueue()) {
+            String qname = activemqDestination.getPhysicalName();
+            hqBroker.makeSureQueueExists(qname);
+        }
+    }
+
+    public boolean enableSsl() {
+        return this.SERVER_SIDE_KEYSTORE != null;
     }
 }

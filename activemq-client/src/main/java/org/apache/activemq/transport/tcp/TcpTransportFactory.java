@@ -27,6 +27,7 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.apache.activemq.TransportLoggerSupport;
+import org.apache.activemq.amq6wrapper.Amq6BrokerHelper;
 import org.apache.activemq.openwire.OpenWireFormat;
 import org.apache.activemq.transport.*;
 import org.apache.activemq.util.IOExceptionSupport;
@@ -42,6 +43,22 @@ import org.slf4j.LoggerFactory;
  */
 public class TcpTransportFactory extends TransportFactory {
     private static final Logger LOG = LoggerFactory.getLogger(TcpTransportFactory.class);
+    private static volatile String brokerService = null;
+
+    //if a broker is started or stopped it should set this.
+    public static void setBrokerName(String name) {
+        brokerService = name;
+    }
+
+    @Override
+    public Transport doConnect(URI location) throws Exception {
+        //here check broker, if no broker, we start one
+        if (brokerService == null) {
+            Amq6BrokerHelper.startHornetQBroker(location);
+            brokerService = location.toString();
+        }
+        return super.doConnect(location);
+    }
 
     public TransportServer doBind(final URI location) throws IOException {
         try {

@@ -66,6 +66,7 @@ public class ActiveMQConnectionFactory extends JNDIBaseStorable implements Conne
     private static final Logger LOG = LoggerFactory.getLogger(ActiveMQConnectionFactory.class);
     private static final String DEFAULT_BROKER_HOST;
     private static final int DEFAULT_BROKER_PORT;
+    private static URI defaultTcpUri;
     static{
         String host = null;
         String port = null;
@@ -116,6 +117,13 @@ public class ActiveMQConnectionFactory extends JNDIBaseStorable implements Conne
         }
         bindURL = (bindURL == null || bindURL.isEmpty()) ? defaultURL : bindURL;
         DEFAULT_BROKER_BIND_URL = bindURL;
+
+        try {
+            defaultTcpUri = new URI(defaultURL);
+        } catch (URISyntaxException e) {
+            LOG.debug("Failed to build default tcp url",e);
+        }
+
     }
 
     public static final String DEFAULT_BROKER_URL = "failover://"+DEFAULT_BROKER_BIND_URL;
@@ -231,7 +239,12 @@ public class ActiveMQConnectionFactory extends JNDIBaseStorable implements Conne
      */
     private static URI createURI(String brokerURL) {
         try {
-            return new URI(brokerURL);
+            URI uri = new URI(brokerURL);
+            String scheme = uri.getScheme();
+            if ("vm".equals(scheme)) {
+                return defaultTcpUri;
+            }
+            return uri;
         } catch (URISyntaxException e) {
             throw (IllegalArgumentException)new IllegalArgumentException("Invalid broker URI: " + brokerURL).initCause(e);
         }

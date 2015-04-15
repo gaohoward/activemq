@@ -104,4 +104,11 @@ public class SslBrokerService extends BrokerService {
             return TransportFactorySupport.bind(this, brokerURI);
         }
     }
+
+    //one way
+    public void setupSsl(String keystoreType, String password, String serverKeystore) {
+        this.SERVER_SIDE_KEYSTORE = serverKeystore;
+        this.KEYSTORE_PASSWORD = password;
+        this.storeType = keystoreType;
+    }
 }
