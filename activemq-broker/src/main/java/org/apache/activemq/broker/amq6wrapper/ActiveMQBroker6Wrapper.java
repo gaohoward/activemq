@@ -30,13 +30,20 @@ public class ActiveMQBroker6Wrapper extends Amq6BrokerBase {
    public void start() throws Exception {
       testDir = temporaryFolder.getRoot().getAbsolutePath();
       clearDataRecreateServerDirs();
-      server = createServer(realStore, true);
+      server = createServer(realStore, false);
       HashMap<String, Object> params = new HashMap<String, Object>();
       params.put(TransportConstants.PORT_PROP_NAME, "61616");
       params.put(TransportConstants.PROTOCOLS_PROP_NAME, "OPENWIRE");
       TransportConfiguration transportConfiguration = new TransportConfiguration(NETTY_ACCEPTOR_FACTORY, params);
 
       Configuration serverConfig = server.getConfiguration();
+
+      Set<TransportConfiguration> acceptors0 = serverConfig.getAcceptorConfigurations();
+      Iterator<TransportConfiguration> iter0 = acceptors0.iterator();
+
+      while (iter0.hasNext()) {
+         System.out.println("===>: " + iter0.next());
+      }
 
       Map<String, AddressSettings> addressSettings = serverConfig.getAddressesSettings();
       String match = "jms.queue.#";
