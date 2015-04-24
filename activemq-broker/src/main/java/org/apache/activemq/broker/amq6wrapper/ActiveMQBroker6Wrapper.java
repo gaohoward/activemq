@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.activemq.amq6wrapper.Amq6BrokerHelper;
+import org.apache.activemq.api.core.ActiveMQQueueExistsException;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.api.core.SimpleString;
 import org.apache.activemq.api.core.TransportConfiguration;
@@ -162,11 +163,14 @@ public class ActiveMQBroker6Wrapper extends Amq6BrokerBase {
    public void makeSureQueueExists(String qname) throws Exception {
       synchronized (testQueues) {
          SimpleString coreQ = testQueues.get(qname);
-         if (coreQ == null)
-         {
+         if (coreQ == null) {
             coreQ = new SimpleString("jms.queue." + qname);
-            this.server.createQueue(coreQ, coreQ, null, false, false);
-            testQueues.put(qname, coreQ);
+            try {
+               this.server.createQueue(coreQ, coreQ, null, false, false);
+               testQueues.put(qname, coreQ);
+            } catch (ActiveMQQueueExistsException e) {
+               //ignore
+            }
          }
       }
    }

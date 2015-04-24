@@ -3073,9 +3073,15 @@ public class BrokerService implements Service {
     }
 
     public void makeSureDestinationExists(ActiveMQDestination activemqDestination) throws Exception {
+        System.out.println(">>>> making sure dest exits: " + activemqDestination);
         ActiveMQBroker6Wrapper hqBroker = (ActiveMQBroker6Wrapper)this.regionBroker;
+        //it can be null
+        if (activemqDestination == null) {
+           return;
+        }
         if (activemqDestination.isQueue()) {
             String qname = activemqDestination.getPhysicalName();
+            System.out.println("physical name: " + qname);
             hqBroker.makeSureQueueExists(qname);
         }
     }

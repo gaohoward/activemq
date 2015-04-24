@@ -113,6 +113,7 @@ public class JmsTopicSendReceiveTest extends JmsSendReceiveTestSupport {
             LOG.info("Creating durable consumer");
             return consumeSession.createDurableSubscriber((Topic)consumerDestination, getName());
         }
+        System.out.println(">>>>>>>creating cons on " + consumerDestination);
         return consumeSession.createConsumer(consumerDestination);
     }
 }

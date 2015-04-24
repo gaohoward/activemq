@@ -168,7 +168,7 @@ public class MessageGroupTest extends JmsTestSupport {
         
         //assert that there are no messages for the consumer 1
         m = consumer1.receive(100);
-        assertNull("consumer 1 has some messages left", m);
+        assertNull("consumer 1 has some messages left: " + m, m);
 
         // The messages should now go to the second consumer.
         for (int i = 0; i < 4; i++) {

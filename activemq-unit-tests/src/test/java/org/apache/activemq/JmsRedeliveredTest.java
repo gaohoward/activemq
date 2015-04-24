@@ -32,6 +32,7 @@ import javax.jms.Topic;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.apache.activemq.transport.Transport;
 import org.apache.activemq.transport.vm.VMTransport;
 import org.apache.activemq.util.Wait;
 
@@ -426,7 +427,9 @@ public class JmsRedeliveredTest extends TestCase {
         });
 
         // whack the connection - like a rebalance or tcp drop
-        ((ActiveMQConnection)connection).getTransport().narrow(VMTransport.class).stop();
+        Transport tr = ((ActiveMQConnection)connection).getTransport();
+        System.out.println("tr: " + tr);
+        tr.narrow(VMTransport.class).stop();
 
         session = keepBrokerAliveConnection.createSession(true, Session.CLIENT_ACKNOWLEDGE);
         MessageConsumer messageConsumer = session.createConsumer(queue);

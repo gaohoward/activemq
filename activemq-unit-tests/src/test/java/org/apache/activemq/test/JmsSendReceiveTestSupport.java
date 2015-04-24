@@ -128,6 +128,7 @@ public abstract class JmsSendReceiveTestSupport extends org.apache.activemq.Test
     }
 
     protected void sendMessage(int index, Message message) throws Exception {
+      System.out.println("----sending a message to dest: " + producerDestination);
     	producer.send(producerDestination, message);
     }
 
